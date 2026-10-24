@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a vulnerability
+    url: https://github.com/Radioiic/Factorlab/blob/main/SECURITY.md
+    about: Do not open an issue for a vulnerability. Use the private reporting form. SECURITY.md gives the steps.
+  - name: Rules of behavior
+    url: https://github.com/Radioiic/Factorlab/blob/main/CODE_OF_CONDUCT.md
+    about: The rules for issues and comments, and how to report a problem of behavior.

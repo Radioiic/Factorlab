@@ -1,0 +1,20 @@
+# Factorlab book specification (format 1). engine/judge.py reads this file.
+format = 1
+name = "long-only"
+version = 1
+
+[book]
+direction = "long_only"       # "long_short" or "long_only"
+sign = 1                      # 1: a high value is long; -1: a low value is long
+top_fraction = 0.2            # the long side: this fraction of the names with a value
+exit_fraction = 0.4           # a name in the book stays while it is in this top fraction
+rebalance = "weekly-monday"   # each Monday 00:00 UTC, on the values of the Sunday before
+
+[costs]
+scenario = "taker"            # "taker" (5 + 5 bps), "maker" (2 + 2 bps) or "custom"
+
+[control]
+kind = "equal_weight"         # "zero" (no position) or "equal_weight" (the eligible coins of the 20)
+
+[forward]
+sigma_floor_fallback = 0.03   # weekly-return units; used only when the history has fewer than 52 weeks with a factor position

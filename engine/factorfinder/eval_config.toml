@@ -1,0 +1,130 @@
+# Evaluation settings: the label, the zones, the rIC regressors, the G0 sanity limits
+# and the settings of the label-free generator probe.
+#
+# Readers:
+#   libfactors.py            [zones], [regressors], [g0] min_names_per_sunday
+#                            (it stops when a value differs from its own constants)
+#   factorfinder/            [zones], [g0], [generator]
+#
+# Versions (factorfinder/config_io.py): the eval version is the sha256 of the canonical
+# JSON of every table except [generator]; the generator version is the sha256 of
+# [generator] alone. Canonical JSON = sorted keys, no whitespace, no NaN/Inf, ASCII,
+# floats rounded to 12 significant digits. A change to a comment does not change a
+# version. A change to a value does.
+#
+# Dates are ISO strings, because canonical JSON has no date type.
+
+schema = 1
+
+[meta]
+universe = "config.UNIVERSE"     # the static 20 OKX USDT-margined perps
+
+[label]
+name = "fwd_ret_7"               # the label table's column: close(D+7)/close(D) - 1, stamped on D
+horizon_days = 7
+lag_days = 0                     # bar D's close is the Monday 00:00 UTC price that a book trades at
+decision_weekday = "Sunday"
+rebalance = "Monday 00:00 UTC"
+
+[zones]
+# G = G_fit + G_eval: the screen zone. I: sealed; no label or statistic in it is read.
+version = "v1"
+g_fit_sundays = ["2022-04-03", "2023-07-23"]
+g_internal_embargo_sundays = ["2023-07-30", "2023-07-30"]
+g_eval_sundays = ["2023-08-06", "2024-06-09"]
+g_eval_label_close = "2024-06-16"                  # the close that completes the last G label
+embargo_sundays = ["2024-06-16", "2024-06-23"]     # a guard against off-by-one errors
+i_sundays = ["2024-06-30", "2026-09-20"]
+
+[zones.expected_counts]                            # Sundays per zone; 234 in total
+g_fit = 69
+g_internal_embargo = 1
+g_eval = 45
+embargo = 2
+i = 117
+
+[regressors]
+# Residual IC (rIC): each Sunday cross-section is ridge-residualized on these regressors
+# before the rank IC is taken. zoo_pc1 is the first principal component of the AlphaForge
+# zoo; no zoo member has a value on a G Sunday, so the screen does not use it.
+set = ["pit_symbol_tilt", "btc_beta_90d", "size_proxy", "zoo_pc1"]
+ridge_lambda = 1e-3
+tilt_shrink_days = 180           # shrunk expanding mean of daily excess return through D: n/(n+180)
+btc_beta_days = 90
+size_proxy = "30d log dollar volume"
+
+[g0]                             # label-free sanity limits, on G
+min_coverage = 0.80
+min_names_per_sunday = 15
+min_finite_share = 0.95
+min_distinct_values_per_date = 10
+
+[generator.terminals]
+# The terminals of the label-free generator probe: 21 library-named series and 4
+# Factorlab-only series (factorfinder/fieldmap.py checks this table).
+# The 21 library-named series are stationary derived fields of library/factorlab/fields.py,
+# evaluated by the library's own Evaluator on the engine's panels (benchmark BTC-USDT, the
+# engine's BTC perp). mkt_ret (equal-weight market return) and btc_ret (the benchmark's
+# return) are equal for every coin on a date: a formula built from them alone is constant
+# per date and fails the label-free G0 check. They rank coins only next to a coin's own
+# series (for example in ts_beta, ts_corr, ts_cov or ts_resid, or in arithmetic such as
+# ret - mkt_ret).
+library = [
+    "ret", "ex_ret", "ex_btc_ret", "oc_ret", "gap", "abs_ret",
+    "hl_range", "log_hl", "body", "upper_shadow", "lower_shadow", "clv", "tr_pct",
+    "parkinson_var", "gk_var", "rs_var",
+    "dvol_chg", "amihud", "funding",
+    "mkt_ret", "btc_ret",
+]
+# The 4 Factorlab-only series. The name sbasis does not collide with the library's
+# premium-based `basis`, which needs a premium index that Factorlab's data does not have.
+# Their definitions ([generator.terminals.definitions]):
+#   sbasis             the perp close over the spot close of the same venue, minus 1.
+#   carry_ret          ret minus the daily funding rate. Daily funding is small next to the
+#                      daily return.
+#   perp_range_excess  the perp high-low range minus the spot high-low range.
+#   deriv_share_chg    the 1-day change of log(perp dollar volume / spot dollar volume).
+factorlab = ["sbasis", "perp_range_excess", "deriv_share_chg", "carry_ret"]
+excluded = [
+    "open interest: no G-zone history (open_interest, open_interest_value, log_oi, oi_chg, oi_coin_chg, oi_turnover)",
+    "vwap and vwap_dev: vwap equals close on this data (quote_volume is close x volume), so vwap_dev is zero up to floating-point rounding",
+    "price/volume level fields: open, high, low, close, volume, quote_volume, typical, log_dvol",
+    "log_amount: a size level",
+]
+# The other stationary library series that the engine's panels supply, and why each one
+# is not a terminal. test_finder_fieldmap.py checks that this list names every such series
+# and nothing else.
+not_listed = [
+    "logret: log(1 + ret), the same order as ret on every date",
+    "sq_ret: ret squared, the same order as abs_ret on every date",
+    "up_ret: max(ret, 0), the positive part of ret",
+    "down_ret: min(ret, 0), the negative part of ret",
+    "close_loc: (clv + 1) / 2, an exact rescaling of clv",
+    "mkt_ret_vw: the dollar-volume-weighted market return, one value per date like mkt_ret",
+    "signed_dvol: sign(ret) x log(1 + dollar volume), a dollar-volume level with the sign of ret",
+]
+# Not supplied by Factorlab's data: premium (and with it the library's basis and
+# funding_premium_gap), trades, taker flow and long/short ratios, and every series built
+# on them.
+
+[generator.terminals.definitions]
+sbasis = "perp close / same-venue spot close - 1"
+perp_range_excess = "perp hl range - spot hl range"
+deriv_share_chg = "1-day change of log(perp dollar volume / spot dollar volume)"
+carry_ret = "ret - funding_rate"
+
+[generator.settings]
+# The operators are the library's own (library/factorlab/operators.py), in a separate
+# registry (factorfinder/libops.py); alphaforge.ops.REGISTRY does not change.
+non_mineable = ["exp", "clip", "pct_change", "ts_maxdd", "ts_maxru", "cs_mean", "cs_wmean"]
+window_min_days = 3
+window_max_days = 90
+max_depth = 3
+max_nodes = 20
+max_nested_lookback_days = 180
+# The bands of the largest |corr| with a member of the novelty index (library, user tests,
+# zoo formulas, risk proxies): below 0.5, 0.5 to 0.85, 0.85 or more; above 0.999 the same
+# values
+novelty_max_abs_corr = 0.5
+novelty_duplicate_abs_corr = 0.85
+novelty_same_hypothesis_abs_corr = 0.999

@@ -1,0 +1,35 @@
+# The license and the copyright of each file (REUSE Specification 3.3).
+# The license texts are in LICENSES/. THIRD_PARTY_NOTICES.md describes the third-party parts.
+version = 1
+SPDX-PackageName = "Factorlab"
+SPDX-PackageSupplier = "Radioiic"
+SPDX-PackageDownloadLocation = "https://github.com/Radioiic/Factorlab"
+
+# All files: Factorlab's own code and documents.
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Radioiic"
+SPDX-License-Identifier = "MIT"
+
+# The dashboard core holds two icons: one from Feather (MIT) and one from Lucide (ISC).
+[[annotations]]
+path = "web/assets/fl-core.js"
+precedence = "override"
+SPDX-FileCopyrightText = [
+    "2026 Radioiic",
+    "2013-2023 Cole Bemis",
+    "2026 Lucide Icons and Contributors",
+]
+SPDX-License-Identifier = "MIT AND ISC"
+
+# The notices quote the license texts of Feather (MIT) and Lucide (ISC).
+[[annotations]]
+path = "THIRD_PARTY_NOTICES.md"
+precedence = "override"
+SPDX-FileCopyrightText = [
+    "2026 Radioiic",
+    "2013-2023 Cole Bemis",
+    "2026 Lucide Icons and Contributors",
+]
+SPDX-License-Identifier = "MIT AND ISC"

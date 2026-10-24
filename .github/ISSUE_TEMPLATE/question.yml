@@ -1,0 +1,35 @@
+name: Question
+description: A question about the method, the results, the use or the license of Factorlab.
+title: "Question: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read README.md and the documents in its section "More documentation" first.
+        Remove your user name and your private paths from each message.
+        Do not attach market data or exported dashboard data.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Your question. Give the command, the page or the document that it is about.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The text of the file VERSION, or the output of `git rev-parse --short HEAD`.
+      placeholder: "0.2.1"
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I attached no market data and no exported dashboard data.
+          required: true
+        - label: My text contains no user name and no private path.
+          required: true

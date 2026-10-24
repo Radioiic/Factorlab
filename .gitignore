@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Data and outputs that setup.sh downloads or builds
+engine/data/
+engine/logs/
+engine/.tmp/
+engine/outputs/
+web/data/
+library/catalog/
+library/data/
+library/.pytest_cache/
+library/**/*.db-journal
+library/**/*.db-wal
+library/**/*.db-shm
+build/
+
+# Coverage data and reports (coverage run, coverage html), and the hypothesis test cache
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+
+# Local files
+# local hidden files of the engine (settings, scratch)
+engine/.*
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.vscode/
+.idea/
+*.log

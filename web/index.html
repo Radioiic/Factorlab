@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factorlab</title>
+<meta name="description" content="Factorlab: numbers for factor research on 20 crypto perpetual futures, and a test of your own factor.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a78d6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V4M4 20h16M7 16l4-5 3 3 5-7'/%3E%3C/svg%3E">
+<script>
+  /* Apply the saved theme before first paint (no flash). Storage may be blocked: ignore. */
+  (function () {
+    try {
+      var t = window.localStorage.getItem("fl-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+    /* Data or page files that fail to load are recorded here; the page keeps working. */
+    window.FL_MISSING = [];
+    window.FL_MISS = function (s) { window.FL_MISSING.push(s.getAttribute("src")); };
+    /* A data or page file that the browser fetched but could not run (a cut or damaged file). */
+    window.FL_BROKEN = [];
+    window.addEventListener("error", function (e) {
+      var m = /(?:^|\/)((?:data|pages)\/[^?#\/]+\.js)(?:[?#]|$)/.exec(e && e.filename ? String(e.filename) : "");
+      if (m) window.FL_BROKEN.push({ file: m[1], parse: /SyntaxError/.test(String(e.message || "")) });
+    });
+  })();
+</script>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div id="fl-app">
+  <noscript><p style="padding:16px">Factorlab needs JavaScript to draw its tables and charts.</p></noscript>
+</div>
+
+<!-- core libraries -->
+<script src="assets/fl-core.js"></script>
+<script src="assets/fl-charts.js"></script>
+
+<!-- the export's meta data (written by engine/export_web.py). The shell loads data/<section>.js
+     and pages/<page>.js on demand when a route opens (FL.load in assets/fl-core.js). -->
+<script src="data/meta.js" onerror="FL_MISS(this)"></script>
+
+<!-- router, loader and shell: always last. -->
+<script src="assets/fl-app.js"></script>
+</body>
+</html>

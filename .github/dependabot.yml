@@ -1,0 +1,15 @@
+# Dependabot settings: it checks the pinned Python packages and the GitHub Actions each month.
+# open-pull-requests-limit 0 stops version-update pull requests (Factorlab does not accept
+# pull requests).
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /engine
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 0
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 0

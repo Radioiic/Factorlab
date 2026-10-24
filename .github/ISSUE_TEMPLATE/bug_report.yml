@@ -1,0 +1,67 @@
+name: Bug report
+description: Factorlab does not do what its documents say.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report a vulnerability here. See SECURITY.md.
+        Remove your user name and your private paths from each message and each log.
+        Do not attach market data or exported dashboard data.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The text of the file VERSION, or the output of `git rev-parse --short HEAD`.
+      placeholder: "0.2.1"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: macOS or Linux, and the version.
+      placeholder: "macOS 14, or Ubuntu 24.04"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: The output of `engine/.venv/bin/python --version`.
+      placeholder: "Python 3.13"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The command that you ran.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: Message
+      description: The full message, or the last lines of engine/logs/update.log.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: The result that you expected.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I attached no market data and no exported dashboard data.
+          required: true
+        - label: My messages and logs contain no user name and no private path.
+          required: true

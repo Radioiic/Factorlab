@@ -1,0 +1,50 @@
+# The factor library package (factorlab) and its command factorlab.
+# ./setup.sh installs it in engine/.venv in editable mode, without dependencies (the pinned
+# set in engine/requirements.txt supplies them):
+#     engine/.venv/bin/python -m pip install --no-deps --no-build-isolation -e library
+# After that, the command factorlab works in any folder (the same as python -m factorlab in library/).
+# The version is the version in the file VERSION at the root of the repository
+# (engine/test_update.py and engine/test_version.py check that the two are equal).
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "factorlab"
+version = "0.2.1"
+description = "Formula definitions of cross-sectional crypto factors, with an evaluator, a SQLite catalog and a command-line tool"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Radioiic" }]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5",
+    "pandas>=3.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Science/Research",
+]
+
+[project.scripts]
+factorlab = "factorlab.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["factorlab", "factorlab.*"]
+
+[tool.ruff]
+# The settings of the repository (../pyproject.toml), and docstring checks for the package
+# and its scripts: each public module, class, method and function has a docstring.
+extend = "../pyproject.toml"
+
+[tool.ruff.lint]
+extend-select = ["D1"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D1"]

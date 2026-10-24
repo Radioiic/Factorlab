@@ -1,0 +1,201 @@
+# Checks without market data. The tests job runs for each push to main, each pull request, each
+# version tag v* and on request:
+#   - install the pinned packages with their hashes (engine/requirements-ci.txt), as setup.sh does;
+#   - build the factor library catalog;
+#   - ruff (lint and format), bandit (security lint) and mypy (type check), with the settings
+#     in pyproject.toml;
+#   - every test suite (engine/run_tests.py) under coverage; the job summary gives the total.
+#     A suite whose tests all need market data shows SKIP.
+# The demo data job runs each Monday, for each version tag v* and on request.
+# The pip-audit job checks the pinned packages for known vulnerabilities. It runs for each push
+# to main, each pull request, each version tag v*, on request and each Monday. Thus a new
+# advisory for a pinned version shows without a push.
+name: tests
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+env:
+  FACTORLAB_OFFLINE: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_NO_INPUT: "1"
+
+jobs:
+  tests:
+    name: tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    if: github.event_name != 'schedule'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python-version: "3.12"
+          - os: ubuntu-24.04
+            python-version: "3.13"
+          - os: macos-15
+            python-version: "3.13"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: engine/requirements*.txt
+      - name: Install (hashed pins, wheels only)
+        id: install
+        run: |
+          python -m venv engine/.venv
+          engine/.venv/bin/python -m pip install --require-hashes --only-binary=:all: -r engine/requirements-ci.txt
+          engine/.venv/bin/python -m pip install --no-deps --no-build-isolation -e library
+      - name: Build the library catalog
+        id: catalog
+        working-directory: library
+        run: ../engine/.venv/bin/python -B -m factorlab build
+      # Each check runs when the install worked, also after a failed check before it.
+      - name: ruff check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: engine/.venv/bin/ruff check --output-format=github .
+      - name: ruff format --check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: engine/.venv/bin/ruff format --check .
+      - name: bandit
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: engine/.venv/bin/bandit -c pyproject.toml -r engine library
+      - name: mypy
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: engine/.venv/bin/mypy
+      - name: Test (under coverage)
+        id: tests
+        if: ${{ !cancelled() && steps.catalog.outcome == 'success' }}
+        env:
+          COVERAGE_FILE: ${{ github.workspace }}/.coverage
+        run: engine/.venv/bin/coverage run engine/run_tests.py
+      - name: Coverage
+        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        env:
+          COVERAGE_FILE: ${{ github.workspace }}/.coverage
+        run: |
+          engine/.venv/bin/coverage combine
+          engine/.venv/bin/coverage report
+          total=$(engine/.venv/bin/coverage report --format=total)
+          {
+            echo "### Coverage"
+            echo ""
+            echo "Total (lines and branches, without market data): ${total}%"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # The same suites with data: engine/update.py --demo writes the synthetic demo data set
+  # (engine/demo_data.py; not market data) and builds every output from it, with no download.
+  # Then every suite runs under coverage. A suite that shows SKIP fails the job (DEMO_SKIP_OK is
+  # empty: no suite may show SKIP). The job also fails when the coverage total is below 84 %.
+  # The job summary gives the run time of the build and of the tests, and the coverage total.
+  # On a GitHub-hosted runner the build takes about 30 minutes. The job runs each Monday, for
+  # each version tag v* and on request.
+  demo:
+    name: demo data (ubuntu-24.04, Python 3.13)
+    if: >-
+      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      DEMO_SKIP_OK: ""
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: engine/requirements*.txt
+      - name: Install (hashed pins, wheels only)
+        run: |
+          python -m venv engine/.venv
+          engine/.venv/bin/python -m pip install --require-hashes --only-binary=:all: -r engine/requirements-ci.txt
+          engine/.venv/bin/python -m pip install --no-deps --no-build-isolation -e library
+      - name: Build the demo data set and every output
+        run: |
+          start=$(date +%s)
+          engine/.venv/bin/python -B engine/update.py --demo
+          echo "DEMO_BUILD_SECONDS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+      - name: Test with the demo data (every suite, under coverage)
+        env:
+          COVERAGE_FILE: ${{ github.workspace }}/.coverage
+        run: |
+          start=$(date +%s)
+          set +e
+          engine/.venv/bin/coverage run engine/run_tests.py | tee run_tests.out
+          rc=${PIPESTATUS[0]}
+          set -e
+          secs=$(( $(date +%s) - start ))
+          skipped=$(awk '$1 == "SKIP" {print $2}' run_tests.out)
+          bad=""
+          for s in $skipped; do
+            case " $DEMO_SKIP_OK " in
+              *" $s "*) ;;
+              *) bad="$bad $s" ;;
+            esac
+          done
+          {
+            echo "### Demo data"
+            echo ""
+            echo "Build (engine/update.py --demo): ${DEMO_BUILD_SECONDS} s. Tests (engine/run_tests.py): ${secs} s."
+            echo "Skipped suites: ${skipped:-none}."
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$bad" ]; then
+            echo "These suites show SKIP with the demo data:$bad" >&2
+            exit 1
+          fi
+          exit "$rc"
+      - name: Coverage with the demo data
+        if: ${{ !cancelled() }}
+        env:
+          COVERAGE_FILE: ${{ github.workspace }}/.coverage
+        run: |
+          engine/.venv/bin/coverage combine
+          total=$(engine/.venv/bin/coverage report --format=total)
+          {
+            echo ""
+            echo "Coverage total (lines and branches, with the demo data): ${total}%"
+          } >> "$GITHUB_STEP_SUMMARY"
+          engine/.venv/bin/coverage report --fail-under=84
+
+  audit:
+    name: pip-audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: engine/requirements*.txt
+      - name: Install (hashed pins, wheels only)
+        run: |
+          python -m venv engine/.venv
+          engine/.venv/bin/python -m pip install --require-hashes --only-binary=:all: -r engine/requirements-ci.txt
+      - name: pip-audit
+        run: >-
+          engine/.venv/bin/pip-audit --strict --progress-spinner off --disable-pip --require-hashes
+          -r engine/requirements.txt -r engine/requirements-dev.txt -r engine/requirements-ci.txt

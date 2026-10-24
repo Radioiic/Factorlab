@@ -1,0 +1,51 @@
+name: Documentation error or change proposal
+description: An error in the documentation, or a proposal for a change of Factorlab.
+title: "Change: "
+labels: ["documentation", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the change in words. Do not paste code for Factorlab.
+        Remove your user name and your private paths from each message.
+        Do not attach market data or exported dashboard data.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - An error in the documentation
+        - A proposal for a change
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where
+      description: The document and section, or the command, page or function.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Change
+      description: The error and the correct text, or the change and the result that you expect.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The text of the file VERSION, or the output of `git rev-parse --short HEAD`.
+      placeholder: "0.2.1"
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I attached no market data and no exported dashboard data.
+          required: true
+        - label: My text contains no user name and no private path.
+          required: true

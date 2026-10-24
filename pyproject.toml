@@ -1,0 +1,115 @@
+# Settings of the check tools: ruff (lint and format), coverage, mypy and bandit.
+# engine/requirements-ci.txt pins the tools. The workflow .github/workflows/tests.yml runs
+# them from the repository root:
+#     engine/.venv/bin/ruff check .
+#     engine/.venv/bin/ruff format --check .
+#     engine/.venv/bin/bandit -c pyproject.toml -r engine library
+#     engine/.venv/bin/mypy
+#     engine/.venv/bin/coverage run engine/run_tests.py
+# The factor library has its own package file: library/pyproject.toml.
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+# First-party modules: the flat engine modules (config, data_io, ...) and the factorlab package.
+src = ["engine", "library"]
+# The excludes below apply also to a file that a command names (for example a pre-commit hook).
+force-exclude = true
+# Data and outputs (git ignores them). ruff also skips .venv, caches and the files that git ignores.
+extend-exclude = [
+    "engine/data",
+    "engine/logs",
+    "engine/.tmp",
+    "web/data",
+    "library/catalog",
+    "library/data",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # import order (isort)
+    "B",    # bugbear
+    "UP",   # pyupgrade (Python 3.12 forms)
+    "SIM",  # simplify
+]
+ignore = [
+    "E501",  # line length: ruff format sets the length of code lines; long strings and comments stay
+    "B905",  # zip() without strict=: strict=True adds a check that changes the behaviour
+]
+# No per-file ignores. engine/libfactors.py: CLEANING_FREEZE pins the tokens of the functions
+# binance_glitches and clean_binance. No rule of this set has a finding in them. A noqa
+# comment does not change the tokens, so use a noqa comment there and not a code change.
+
+[tool.ruff.lint.isort]
+known-first-party = ["alphaforge", "factorfinder", "factorlab", "webexport"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+# CLEANING_FREEZE pins the tokens of two functions in this file. The formatter can add a
+# token (for example a trailing comma), so it does not format the file.
+exclude = ["engine/libfactors.py"]
+
+[tool.coverage.run]
+branch = true
+# Measure the Python subprocesses too: engine/run_tests.py runs each suite in a subprocess.
+patch = ["subprocess"]
+source = ["engine", "library/factorlab"]
+# The patterns start with */, because the suites run with engine/ or library/ as the current folder.
+omit = [
+    "*/engine/.venv/*",
+    "*/engine/.tmp/*",
+    "*/engine/test_*.py",
+    "*/engine/alphaforge/tests/*",
+    "*/library/tests/*",
+]
+
+[tool.coverage.report]
+precision = 1
+skip_empty = true
+show_missing = false
+
+[tool.mypy]
+python_version = "3.12"
+# The flat engine modules import each other by name (cd engine), and the engine imports
+# the factorlab package from library/.
+mypy_path = ["engine", "library"]
+explicit_package_bases = true
+files = [
+    "engine/config.py",
+    "engine/data_io.py",
+    "engine/backtest.py",
+    "engine/labels.py",
+    "engine/ledger.py",
+    "engine/book.py",
+    "engine/rules.py",
+    "engine/userfactor.py",
+    "engine/trials.py",
+    "engine/judge.py",
+    "library/factorlab",
+]
+follow_imports = "silent"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+check_untyped_defs = false
+
+[[tool.mypy.overrides]]
+# Packages without type information.
+module = ["pyarrow.*", "scipy.*"]
+ignore_missing_imports = true
+
+[tool.bandit]
+# bandit -c pyproject.toml -r engine library
+exclude_dirs = [
+    "engine/.venv",
+    "engine/.tmp",
+    "engine/data",
+    "engine/alphaforge/tests",
+    "engine/test_*.py",
+    "library/tests",
+    "library/data",
+    "library/catalog",
+]

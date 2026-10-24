@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use Factorlab in your research, cite it with these data."
+type: software
+title: Factorlab
+abstract: >-
+  Factorlab gives numbers for cross-sectional factors of 20 OKX USDT perpetual futures.
+  It tests a factor that you give in a book with costs: a historical test, and a weekly
+  forward test with a confidence sequence.
+authors:
+  - alias: Radioiic
+license: MIT
+version: 0.2.1
+date-released: 2026-10-24
+repository-code: "https://github.com/Radioiic/Factorlab"
+keywords:
+  - factor research
+  - cross-sectional factors
+  - crypto perpetual futures
