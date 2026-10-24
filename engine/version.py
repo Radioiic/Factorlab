@@ -2,7 +2,7 @@
 
     python version.py                    # print the version
     python version.py --changelog        # print the CHANGELOG.md section of the version
-    python version.py --changelog 0.2.1  # print the CHANGELOG.md section of 0.2.1
+    python version.py --changelog 0.2.2  # print the CHANGELOG.md section of 0.2.2
 
 The factor library (factorlab.__version__), the dashboard (meta.js, the footer and the
 System page) and the log of update.py all read this file. The version has the Semantic
@@ -39,9 +39,9 @@ def read(path: Path | str = VERSION_FILE) -> str:
 
 VERSION = read()
 
-# "## [0.2.1] - 2026-10-24": the heading of a released version in CHANGELOG.md
+# "## [0.2.2] - 2026-10-24": the heading of a released version in CHANGELOG.md
 RELEASE_HEADING = re.compile(r"^## \[([^\]]+)\] - (\d{4}-\d{2}-\d{2})(?: \[YANKED\])?$")
-# "[0.2.1]: https://...": a link definition at the end of CHANGELOG.md
+# "[0.2.2]: https://...": a link definition at the end of CHANGELOG.md
 LINK_DEFINITION = re.compile(r"^\[[^\]]+\]: \S+$")
 
 

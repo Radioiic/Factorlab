@@ -933,7 +933,7 @@ def test_build_log_is_read_from_update_log():
         "2026-10-09T08:17:56Z  library on OKX data, compute  ok  60s",
         "2026-10-09T08:18:00Z  dashboard  ok  4s",
         "a line with /Users/x/secret text",
-        "2026-10-10T08:59:59Z  Factorlab 0.2.1",
+        "2026-10-10T08:59:59Z  Factorlab 0.2.2",
         "2026-10-10T09:00:10Z  labels  ok  10s",
         "2026-10-10T09:00:10Z  labels | 20 symbols",
         "2026-10-10T09:00:20Z  library on OKX data, screen  failed (exit 2)  10s",

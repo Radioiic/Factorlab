@@ -3,7 +3,7 @@
 [![Test workflow status](https://github.com/Radioiic/Factorlab/actions/workflows/tests.yml/badge.svg)](https://github.com/Radioiic/Factorlab/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python 3.12 and 3.13](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](#requirements)
-[![Version 0.2.1](https://img.shields.io/badge/version-0.2.1-blue)](CHANGELOG.md)
+[![Version 0.2.2](https://img.shields.io/badge/version-0.2.2-blue)](CHANGELOG.md)
 
 Factorlab is a research tool for cross-sectional factors of 20 OKX USDT perpetual futures.
 Four search tools give numbers. A test judges a factor that you give: a formula or a file of
@@ -304,7 +304,7 @@ Factorlab reads no other folder of the data folder.
 
 `update.py` takes the lock `engine/logs/update.lock` and writes to
 `engine/logs/update.log`. Each line of the log has the form `<UTC time>  <text>`. The first
-line of a run gives the version (`Factorlab 0.2.1`). When the run has a download step, the
+line of a run gives the version (`Factorlab 0.2.2`). When the run has a download step, the
 console then shows a line about the data terms. Each step adds one line: step, result and
 seconds. The result is `ok`, `done (new alarm)` or `failed (exit N)`. With `--verbose`, the
 build shows each output line of each step, and the log has each line too. The System page

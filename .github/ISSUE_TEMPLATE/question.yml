@@ -21,7 +21,7 @@ body:
     attributes:
       label: Version or commit
       description: The text of the file VERSION, or the output of `git rev-parse --short HEAD`.
-      placeholder: "0.2.1"
+      placeholder: "0.2.2"
     validations:
       required: false
   - type: checkboxes

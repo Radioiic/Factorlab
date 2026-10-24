@@ -7,6 +7,8 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-24
+
 ### Security
 
 - The pinned packages include setuptools 84.1.0 and filelock 4.2.1. These versions have the fixes for the known vulnerabilities of setuptools 84.0.0 and filelock 4.2.0.
@@ -55,5 +57,6 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
   - The private reporting form of GitHub (the tab Security and quality, then "Report a vulnerability") takes the security reports and the code of conduct reports.
   - The issues take the questions, also the questions about the license (the form "Question").
 
-[Unreleased]: https://github.com/Radioiic/Factorlab/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/Radioiic/Factorlab/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/Radioiic/Factorlab/releases/tag/v0.2.2
 [0.2.1]: https://github.com/Radioiic/Factorlab/releases/tag/v0.2.1

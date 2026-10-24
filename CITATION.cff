@@ -9,7 +9,7 @@ abstract: >-
 authors:
   - alias: Radioiic
 license: MIT
-version: 0.2.1
+version: 0.2.2
 date-released: 2026-10-24
 repository-code: "https://github.com/Radioiic/Factorlab"
 keywords:
