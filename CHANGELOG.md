@@ -7,6 +7,10 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
 
 ## [Unreleased]
 
+### Security
+
+- The pinned packages include setuptools 84.1.0 and filelock 4.2.1. These versions have the fixes for the known vulnerabilities of setuptools 84.0.0 and filelock 4.2.0.
+
 ## [0.2.1] - 2026-10-24
 
 ### Added
