@@ -62,7 +62,7 @@ class _Server:
         self.files = files
         self.calls: list[str] = []
 
-    def __call__(self, url, timeout=None):
+    def __call__(self, url, timeout=None, context=None):
         self.calls.append(url)
         if url not in self.files:
             raise urllib.error.HTTPError(url, 404, "not found", {}, None)

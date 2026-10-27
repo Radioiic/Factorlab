@@ -478,7 +478,7 @@ def _environment() -> list[dict]:
                 "name": "PYTHON",
                 "default": "python3.13, python3.12 or python3",
                 "meaning": "The Python that setup.sh uses to make engine/.venv.",
-                "guard": "setup.sh stops when it is not Python 3.12 or later.",
+                "guard": "setup.sh stops when it is not Python 3.12 or 3.13.",
                 "default_expr": None,
                 "read_in": ["setup.sh"],
             }

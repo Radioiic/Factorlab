@@ -27,7 +27,7 @@ class _Recorder:
         self.calls = []
         self.payload = payload
 
-    def __call__(self, url, timeout=None):
+    def __call__(self, url, timeout=None, context=None):
         self.calls.append(url)
         body = self.payload
 

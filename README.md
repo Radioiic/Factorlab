@@ -131,7 +131,7 @@ its verdict.
 | System | macOS 12 or later (Apple silicon or Intel), or Linux x86_64 with glibc 2.28 or later |
 | Windows | Use WSL2 with a Linux distribution, and follow the Linux steps. The test workflow does not run on Windows. |
 | Python | 3.12 or 3.13 |
-| Tools | `git`, and a shell with `sh` |
+| Tools | `git`, and a shell with `sh`. On Debian and Ubuntu (also in WSL2), also the package `python3.X-venv` of your Python (for example `python3.12-venv`). |
 | Intel Mac only | PyPI has no wheel of `cryptography` 50.0.2 for macOS x86_64, so pip builds it from source. Install Rust and OpenSSL 3 first: `brew install rust openssl@3`. |
 | Network | necessary for the first setup and for each data update. Hosts: `pypi.org` and `files.pythonhosted.org` (the Python packages), `www.okx.com` (OKX), `fapi.binance.com` and `data.binance.vision` (Binance). `--demo` and `--offline` download no market data. |
 | Disk space | about 3 GB free (data about 1.6 GB, Python environment about 0.7 GB) |
@@ -151,8 +151,9 @@ new days downloads a few days. Then it builds every output again: about 5 minute
 or about 1 minute with `--skip-library`. A demo build (`--demo`) takes
 about 5 minutes and downloads no market data.
 
-The pinned packages resolve for Python 3.12 and 3.13. Another Python version is not
-tested, and some pinned packages then need a compiler.
+The pinned packages resolve for Python 3.12 and 3.13, and `setup.sh` accepts only these
+two versions. For a newer Python, some pinned packages can have no wheel on PyPI, and pip
+must then build them from source.
 
 **Regions.** Binance refuses requests from some regions (for example, the United States)
 with HTTP 451. In these regions, run `./setup.sh --skip-binance`. Each data source has its
@@ -175,7 +176,7 @@ cd Factorlab
 
 `setup.sh` does these steps:
 
-1. It finds Python 3.12 or newer (`PYTHON`, else `python3.13`, `python3.12`, `python3`).
+1. It finds Python 3.12 or 3.13 (`PYTHON`, else `python3.13`, `python3.12`, `python3`).
 2. It makes the virtual environment `engine/.venv` (only when it does not exist).
 3. It installs the pinned packages of `engine/requirements.txt` with `--require-hashes`.
    Each package has one version and the sha256 hash of each of its files, so pip refuses
@@ -1071,8 +1072,9 @@ the dashboard show it too. [CHANGELOG.md](CHANGELOG.md) lists the changes of eac
 
 | Message or symptom | Cause and action |
 |---|---|
-| `Python 3.12 or later is necessary` | Install Python 3.12 or 3.13. Or set `PYTHON=/path/to/python3` and run `./setup.sh` again. |
-| `engine/.venv has a Python older than 3.12` | Remove `engine/.venv`. Then run `./setup.sh` again. |
+| `Python 3.12 or 3.13 is necessary` or `is not Python 3.12 or 3.13` | Install Python 3.12 or 3.13. Or set `PYTHON=/path/to/python3.13` and run `./setup.sh` again. |
+| `engine/.venv does not have Python 3.12 or 3.13` | Remove `engine/.venv`. Then run `./setup.sh` again. |
+| `engine/.venv has no pip`, or `ensurepip is not available` | On Debian and Ubuntu (also in WSL2), install the package `python3.X-venv` of your Python. The message of `setup.sh` gives the name (for example `sudo apt install python3.12-venv`). Remove `engine/.venv`. Then run `./setup.sh` again. |
 | pip fails to build `cryptography` (Intel Mac) | PyPI has no wheel for this system. Install Rust and OpenSSL 3 (`brew install rust openssl@3`), then run `./setup.sh` again. |
 | `THESE PACKAGES DO NOT MATCH THE HASHES` | A downloaded package file is not the pinned file. Run `./setup.sh` again. If the message stays, empty the pip cache (`engine/.venv/bin/python -m pip cache purge`). |
 | A download step fails | The network or the exchange stopped the request. The message names the coins that failed. Run `./setup.sh` again. On the first setup, complete coin downloads stay on disk, and only the incomplete coins download again. An update downloads the new days of all coins again. |

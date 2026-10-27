@@ -15,7 +15,7 @@
 #   --test           install the test packages too and run the full test suite after the build
 #   --no-open        do not open the dashboard at the end
 #
-# Run the same command again to add new days. macOS and Linux. Python 3.12 or later.
+# Run the same command again to add new days. macOS and Linux. Python 3.12 or 3.13.
 set -eu
 cd "$(dirname "$0")"
 
@@ -51,21 +51,23 @@ if [ "$(id -u)" = "0" ]; then
   exit 1
 fi
 
-# 1. Python 3.12 or later.
-if [ -n "${PYTHON:-}" ] && ! { command -v "$PYTHON" >/dev/null 2>&1 && "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' 2>/dev/null; }; then
-  echo "setup.sh: PYTHON=$PYTHON is not Python 3.12 or later." >&2
+# 1. Python 3.12 or 3.13 (the tested versions; for a newer Python, some pinned packages have
+#    no wheel on PyPI, and pip must build them from source).
+PYOK='import sys; sys.exit(0 if (3, 12) <= sys.version_info[:2] <= (3, 13) else 1)'
+if [ -n "${PYTHON:-}" ] && ! { command -v "$PYTHON" >/dev/null 2>&1 && "$PYTHON" -c "$PYOK" 2>/dev/null; }; then
+  echo "setup.sh: PYTHON=$PYTHON is not Python 3.12 or 3.13." >&2
   exit 1
 fi
 PY=""
 for c in "${PYTHON:-}" python3.13 python3.12 python3; do
   [ -n "$c" ] || continue
-  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' 2>/dev/null; then
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c "$PYOK" 2>/dev/null; then
     PY="$c"
     break
   fi
 done
 if [ -z "$PY" ]; then
-  echo "setup.sh: Python 3.12 or later is necessary. Install it, or set PYTHON=/path/to/python3." >&2
+  echo "setup.sh: Python 3.12 or 3.13 is necessary. Install one of them, or set PYTHON=/path/to/python3.13." >&2
   exit 1
 fi
 
@@ -79,8 +81,15 @@ if [ ! -x "$VENV/bin/python" ]; then
   echo "setup.sh makes the Python environment in $VENV ..."
   "$PY" -m venv "$VENV"
 fi
-"$VENV/bin/python" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' || {
-  echo "setup.sh: $VENV has a Python older than 3.12. Remove $VENV and run setup.sh again." >&2
+"$VENV/bin/python" -c "$PYOK" || {
+  echo "setup.sh: $VENV does not have Python 3.12 or 3.13. Remove $VENV and run setup.sh again." >&2
+  exit 1
+}
+# On Debian and Ubuntu (also in WSL2), venv makes an environment without pip when the
+# package python3.X-venv is not installed.
+"$VENV/bin/python" -c 'import pip' 2>/dev/null || {
+  V=$("$VENV/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+  echo "setup.sh: $VENV has no pip. On Debian and Ubuntu (also in WSL2), install the package python$V-venv (sudo apt install python$V-venv). Then remove $VENV and run setup.sh again." >&2
   exit 1
 }
 

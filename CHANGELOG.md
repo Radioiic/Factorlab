@@ -7,6 +7,17 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
 
 ## [Unreleased]
 
+### Changed
+
+- `./setup.sh` accepts only Python 3.12 and 3.13, the versions that the tests use. For a newer Python, some pinned packages can have no wheel on PyPI, and pip must then build them from source.
+
+### Fixed
+
+- `./setup.sh` stops with a clear message when `engine/.venv` has no pip. This occurs on Debian and Ubuntu (also in WSL2) when the package `python3.X-venv` is not installed. The message gives the name of the package.
+- The Binance downloads use the CA certificates of `certifi` in addition to the CA certificates of Python. They now work with a Python from python.org on macOS also before its "Install Certificates.command" runs.
+- When a Binance download from the REST API fails after all retries, the message gives the reason of the last error.
+- The command in `web/README.md` that serves the dashboard accepts connections from this computer only (`-b 127.0.0.1`).
+
 ## [0.2.2] - 2026-10-24
 
 ### Security

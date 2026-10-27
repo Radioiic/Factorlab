@@ -28,8 +28,11 @@ Open `web/index.html` in a browser. The page works from a local file (`file://`)
 can also serve the folder:
 
 ```bash
-python3 -m http.server -d web 8000      # then open http://localhost:8000/
+python3 -m http.server -b 127.0.0.1 -d web 8000      # then open http://127.0.0.1:8000/
 ```
+
+`-b 127.0.0.1` keeps the server on this computer. Without it, other computers on your
+network can open the dashboard and its data.
 
 On a served folder, the shell loads `data/meta.js` again on each page load. Then the
 version query makes the browser load the new data and page files after an export. If a

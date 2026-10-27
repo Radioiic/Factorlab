@@ -22,9 +22,11 @@ Usage::
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import io
 import json
+import ssl
 import time
 import urllib.error
 import urllib.parse
@@ -97,11 +99,29 @@ class ArchiveError(ValueError):
     agree, or its content is not a daily metrics file."""
 
 
+@functools.cache
+def _ssl_context() -> ssl.SSLContext | None:
+    """The SSL context of the downloads: the CA certificates of this Python (also SSL_CERT_FILE
+    and SSL_CERT_DIR) and the CA certificates of certifi. Without certifi, None (the default
+    context of urllib). setup.sh installs certifi.
+
+    A Python from python.org on macOS has no CA certificates of its own until its "Install
+    Certificates.command" runs. With that Python and without certifi, each https request fails
+    with CERTIFICATE_VERIFY_FAILED."""
+    try:
+        import certifi
+    except ImportError:
+        return None
+    ctx = ssl.create_default_context()
+    ctx.load_verify_locations(cafile=certifi.where())
+    return ctx
+
+
 def _urlopen(url: str):
     """urllib.request.urlopen for an https URL only (a file: or other scheme is an error)."""
     if not url.startswith("https://"):
         raise ValueError(f"only https URLs are allowed: {url!r}")
-    return urllib.request.urlopen(url, timeout=30)  # nosec B310  # the check above allows https URLs only
+    return urllib.request.urlopen(url, timeout=30, context=_ssl_context())  # nosec B310  # the check above allows https URLs only
 
 
 def _read_limited(r, limit: int, url: str) -> bytes:
@@ -146,18 +166,22 @@ def _get(url: str, params: dict, retries: int = 5):
     """Return the decoded JSON of a GET request to ``url`` with ``params``, with retries (see _retry_wait)."""
     q = url + "?" + urllib.parse.urlencode(params)
     require_network("a Binance download")  # offline unless FACTORLAB_OFFLINE=0
+    last: urllib.error.URLError | None = None
     for attempt in range(retries):
         try:
             with _urlopen(q) as r:
                 return json.loads(_read_limited(r, MAX_JSON_BYTES, q))
         except urllib.error.HTTPError as e:
             if e.code in (418, 429) or e.code >= 500:
+                last = e
                 time.sleep(_retry_wait(e, attempt))
                 continue
             raise
-        except urllib.error.URLError:
+        except urllib.error.URLError as e:
+            last = e
             time.sleep(2**attempt)
-    raise RuntimeError(f"failed to fetch {q}")
+    # the reason of the last error (for example CERTIFICATE_VERIFY_FAILED) goes into the message
+    raise RuntimeError(f"failed to fetch {q}" + (f": {last.reason}" if last is not None else "")) from last
 
 
 def _get_bytes(url: str, retries: int = 6, limit: int = MAX_ARCHIVE_BYTES) -> bytes | None:

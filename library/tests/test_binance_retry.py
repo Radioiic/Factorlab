@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import io
+import ssl
+import sys
 import urllib.error
 import urllib.request
 import zipfile
@@ -52,9 +54,11 @@ class _Stub:
     def __init__(self, outcomes):
         self.outcomes = list(outcomes)
         self.calls = 0
+        self.contexts = []
 
-    def __call__(self, url, timeout=None):
+    def __call__(self, url, timeout=None, context=None):
         self.calls += 1
+        self.contexts.append(context)
         out = self.outcomes.pop(0)
         if isinstance(out, int):
             out = (out, {})
@@ -110,6 +114,54 @@ def test_rate_limit_waits_at_least_retry_after(monkeypatch):
     monkeypatch.setattr(urllib.request, "urlopen", stub)
     assert binance._get_bytes("https://example.invalid/f.zip") == b"body"
     assert waits == [7, 2]  # max(2**0, 7), then max(2**1, no header)
+
+
+def test_rest_error_message_keeps_the_reason(monkeypatch):
+    """After the last retry, the message of _get names the reason of the last network error."""
+
+    def fail(url, timeout=None, context=None):
+        raise urllib.error.URLError("CERTIFICATE_VERIFY_FAILED")
+
+    monkeypatch.setattr(urllib.request, "urlopen", fail)
+    with pytest.raises(
+        RuntimeError, match=r"failed to fetch https://example\.invalid/api\?.*: CERTIFICATE_VERIFY_FAILED"
+    ):
+        binance._get("https://example.invalid/api", {"a": 1}, retries=2)
+
+
+@pytest.fixture
+def fresh_context():
+    binance._ssl_context.cache_clear()
+    yield
+    binance._ssl_context.cache_clear()
+
+
+def test_downloads_use_the_ca_certificates_of_certifi(monkeypatch, fresh_context):
+    """A Python from python.org on macOS has no CA certificates of its own: the downloads use certifi."""
+    import certifi
+
+    files = []
+    real = ssl.SSLContext.load_verify_locations
+
+    def spy(self, *args, **kwargs):
+        files.append(kwargs.get("cafile"))
+        return real(self, *args, **kwargs)
+
+    monkeypatch.setattr(ssl.SSLContext, "load_verify_locations", spy)
+    stub = _Stub([b"body", b"body"])
+    monkeypatch.setattr(urllib.request, "urlopen", stub)
+    assert binance._get_bytes("https://example.invalid/f.zip") == b"body"
+    assert binance._get_bytes("https://example.invalid/g.zip") == b"body"
+    assert files == [certifi.where()]  # one context for all downloads
+    assert all(isinstance(c, ssl.SSLContext) for c in stub.contexts) and stub.contexts[0] is stub.contexts[1]
+
+
+def test_without_certifi_the_python_ca_certificates_are_used(monkeypatch, fresh_context):
+    monkeypatch.setitem(sys.modules, "certifi", None)  # import certifi gives ImportError
+    stub = _Stub([b"body"])
+    monkeypatch.setattr(urllib.request, "urlopen", stub)
+    assert binance._get_bytes("https://example.invalid/f.zip") == b"body"
+    assert stub.contexts == [None]
 
 
 def test_archive_survives_a_temporary_error(monkeypatch):
