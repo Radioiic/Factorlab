@@ -36,8 +36,8 @@ engine/.venv/bin/python -B engine/update.py --from "dashboard"
 |---|---|---|
 | demo data | `demo_data.py --write` | `--demo` (then no download step) |
 | OKX download | `ingest.py` | not `--offline` and not `--demo` |
-| Binance download; Binance merge | `factorlab download`; `scripts/merge_panels.py` | no Binance panel on disk; only the incomplete coins download |
-| Binance download; Binance append | `factorlab download`; `scripts/merge_panels.py --append` | the panel ends before the download end (see the rules) |
+| Binance download; Binance merge | `factorlab download`; `library/scripts/merge_panels.py` | no Binance panel on disk; only the incomplete coins download |
+| Binance download; Binance append | `factorlab download`; `library/scripts/merge_panels.py --append` | the panel ends before the download end (see the rules) |
 | labels | `labels.py` | always |
 | factor tests, weekly log | `judge.py log-week --accept-release` | `data/trials/registrations.jsonl` exists |
 | library catalog | `python -m factorlab build` | no `library/catalog/factors.db` (not with `--skip-library`) |

@@ -141,8 +141,8 @@ A page never breaks when data is absent:
 
 | Case | What the page shows |
 |---|---|
-| `data/<section>.js` does not exist | "No data": "data/<section>.js is not in this folder." and the two commands |
-| `data/<section>.js` does not parse | "No data": "data/<section>.js does not parse (or has a script error)." and the two commands |
+| `data/<section>.js` does not exist | "No data": "`data/<section>.js` is not in this folder." and the two commands |
+| `data/<section>.js` does not parse | "No data": "`data/<section>.js` does not parse (or has a script error)." and the two commands |
 | The exporter found no input files for a section | "No data for this page", the reason (the absent file in the data folder), and the two commands |
 | `pages/<page>.js` does not exist | "Page not available" |
 | `data/meta.js` does not exist | "No snapshot loaded" and `./setup.sh` in the header |

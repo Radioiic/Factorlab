@@ -276,7 +276,7 @@ and `--verbose`. The steps, in order:
 |---|---|---|
 | demo data | `demo_data.py --write` | only with `--demo`; then no download step |
 | OKX download | `ingest.py` | not with `--offline` or `--demo` |
-| Binance download, then Binance merge or Binance append | `factorlab download`, `scripts/merge_panels.py` | not with `--skip-binance`, `--offline` or `--demo`. The merge makes the first panel; the append adds new days. |
+| Binance download, then Binance merge or Binance append | `factorlab download`, `library/scripts/merge_panels.py` | not with `--skip-binance`, `--offline` or `--demo`. The merge makes the first panel; the append adds new days. |
 | labels | `labels.py` | always |
 | factor tests, weekly log | `judge.py log-week --accept-release` | only when the trial ledger `engine/data/trials/` has a registration |
 | library catalog | `python -m factorlab build` | only when `library/catalog/factors.db` is absent; not with `--skip-library` |
