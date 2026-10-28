@@ -101,6 +101,9 @@ test, the forward test and the record. Each id in the table of My factors links 
 library id (`CF…`), the page links to the library search, and the link opens the search with
 that id. Another id gives "No registered test has this id."
 
+The route `#/system/glossary-<N>` opens the System page with section N of the glossary open.
+A name that is not the id of a glossary section opens no section.
+
 The pages judge nothing. The data file gives each verdict word and each label of a verdict or a
 state. It also gives the rule text and the expected number of false verdicts.
 `webexport/mine.py` reads them from `trials.status_data()` and `rules.py`. The page of a test

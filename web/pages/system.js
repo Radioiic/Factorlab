@@ -837,7 +837,7 @@
 
         var secWrap = el("div", { "class": "system-gsecs" });
         cG.body.appendChild(secWrap);
-        var secNodes = [], byId = {};
+        var secNodes = [], byId = new Map();
         var total = 0;
         var filtering = false;
         arr(gloss.sections).forEach(function (s) {
@@ -857,7 +857,7 @@
           // remember what the reader opens or closes, but not the filter's own opening
           d.root.addEventListener("toggle", function () { if (!filtering) sn.userOpen = d.root.open; });
           secNodes.push(sn);
-          if (s.id) byId[s.id] = sn;
+          if (s.id) byId.set(s.id, sn);
         });
         var empty = el("p", { "class": "muted", text: "" });
         empty.hidden = true;
@@ -915,7 +915,8 @@
           if (!m) return;
           var id = m[1];
           try { id = decodeURIComponent(id); } catch (err) { /* keep the raw id */ }
-          var sn = byId[id];
+          // the id comes from the address bar: a Map has no inherited keys ("__proto__" is not a section)
+          var sn = byId.has(id) ? byId.get(id) : null;
           if (sn && !sn.d.root.hidden) { sn.d.root.open = true; if (!filtering) sn.userOpen = true; }
         };
         if (ctx.listen) ctx.listen(window, "hashchange", system_onHash);

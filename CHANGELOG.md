@@ -17,6 +17,7 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
 - The Binance downloads use the CA certificates of `certifi` in addition to the CA certificates of Python. They now work with a Python from python.org on macOS also before its "Install Certificates.command" runs.
 - When a Binance download from the REST API fails after all retries, the message gives the reason of the last error.
 - The command in `web/README.md` that serves the dashboard accepts connections from this computer only (`-b 127.0.0.1`).
+- On the System page, a link such as `#/system/__proto__` opens no glossary section and does not cause a script error.
 
 ## [0.2.2] - 2026-10-24
 

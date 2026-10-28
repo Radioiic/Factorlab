@@ -1121,8 +1121,10 @@ def _node() -> str | None:
 def _render_system(variant: str, build: dict | None = None) -> dict:
     """Run pages/system.js in node on the exported files. The DOM stub is the one of
     test_export_web.py (read with ast, not imported), set to this page. The variant
-    "late" moves the fourth coin's last bar back to 8 days before the newest bar. A `build`
-    block (the form of _build_log()) replaces the exported one."""
+    "late" moves the fourth coin's last bar back to 8 days before the newest bar. The variant
+    "hash" records the window listeners of the page, then sends hash changes to #/system/<name>
+    (the field "hash" of the result). A `build` block (the form of _build_log()) replaces the
+    exported one."""
     import subprocess
 
     tree = ast.parse((ENGINE / "test_export_web.py").read_text(encoding="utf-8"))
@@ -1132,16 +1134,34 @@ def _render_system(variant: str, build: dict | None = None) -> dict:
         if isinstance(n, ast.Assign) and any(isinstance(x, ast.Name) and x.id == "_DOM_STUB" for x in n.targets)
     )
     anchor = 'const root = new N("div");'
+    out_anchor = "process.stdout.write(JSON.stringify({ text: root.textContent,"
     assert stub.count(anchor) == 1 and stub.count('"pages/PAGE.js"') == 1, "the DOM stub of test_export_web.py changed"
-    stub = stub.replace("PAGE", "system").replace(
-        anchor,
-        (
-            'if (VARIANT === "late") { const a = FL.data.meta.data_age, c = a.coins[3];'
-            ' c.last_bar = new Date(Date.parse(a.newest_bar) - 8 * 864e5).toISOString().slice(0, 10);'
-            ' c.days_behind = 8; a.behind_newest = [c.symbol]; }\n'
-            + (f"FL.data.system.snapshot.build = {json.dumps(build)};\n" if build is not None else "")
-            + anchor
-        ),
+    assert stub.count(out_anchor) == 1, "the DOM stub of test_export_web.py changed"
+    stub = (
+        stub.replace("PAGE", "system")
+        .replace(
+            anchor,
+            (
+                'if (VARIANT === "late") { const a = FL.data.meta.data_age, c = a.coins[3];'
+                ' c.last_bar = new Date(Date.parse(a.newest_bar) - 8 * 864e5).toISOString().slice(0, 10);'
+                ' c.days_behind = 8; a.behind_newest = [c.symbol]; }\n'
+                'if (VARIANT === "hash") { W.__L = {}; W.addEventListener = (t, f) => { (W.__L[t] = W.__L[t] || []).push(f); }; }\n'
+                + (f"FL.data.system.snapshot.build = {json.dumps(build)};\n" if build is not None else "")
+                + anchor
+            ),
+        )
+        .replace(
+            out_anchor,
+            # each name: the error of the listeners and the open glossary sections
+            "const HASH = { runs: [] };\n"
+            'if (VARIANT === "hash") { const secs = root.querySelectorAll(".system-gsec");\n'
+            '  for (const name of ["__proto__", "constructor", "toString", secs.length ? secs[0].id : ""]) {\n'
+            '    secs.forEach(d => { d.open = false; }); W.location.hash = "#/system/" + name; let error = null;\n'
+            "    try { (W.__L.hashchange || []).forEach(f => f({})); } catch (e) { error = String(e && e.message || e); }\n"
+            "    HASH.runs.push({ name, error, open: secs.filter(d => d.open).map(d => d.id) }); }\n"
+            "  HASH.sections = secs.length; HASH.listeners = (W.__L.hashchange || []).length; }\n"
+            + out_anchor.replace("({ text:", "({ hash: HASH, text:"),
+        )
     )
     r = subprocess.run([_node(), "-e", stub, str(REPO / "web"), variant], capture_output=True, text=True, timeout=60)
     assert r.returncode == 0, f"system page render ({variant}) failed: {r.stderr[-800:]}"
@@ -1190,6 +1210,28 @@ def test_data_age_card():
             assert f"{c['symbol']}{c['last_bar']}{c['days_behind']:,}\u2022same as the newest coin" in late, c["symbol"]
     # the status never shows a green check: it compares coins, not the age of the data
     assert "\u2713newest bar" not in late
+
+
+def test_glossary_link_takes_only_section_ids():
+    """A hash change to #/system/<id> opens the glossary section <id>. The id comes from the
+    address bar: a name such as "__proto__" or "constructor" opens no section and gives no
+    script error. The sections are in a Map, so an inherited key of an object is never a
+    section. The test always checks the source contract. When it finds node (PATH, NODE or
+    FACTORLAB_NODE), it also renders the exported files and sends the hash changes."""
+    src = PAGE.read_text()
+    assert "byId = new Map();" in src and "byId.set(s.id, sn);" in src
+    assert "var sn = byId.has(id) ? byId.get(id) : null;" in src
+    if _node() is None or not (REPO / "web" / "data" / "meta.js").exists() or not WEB_SYSTEM.exists():
+        print("        (skipped the node render: node or the exported files are missing)")
+        return
+    h = _render_system("hash")["hash"]
+    assert h["listeners"] == 1 and h["sections"] > 0, h
+    runs = {r.pop("name"): r for r in h["runs"]}
+    for name in ("__proto__", "constructor", "toString"):
+        assert runs.pop(name) == {"error": None, "open": []}, (name, h)
+    # the last run: the id of the first glossary section opens that section
+    ((first, run),) = runs.items()
+    assert first and run == {"error": None, "open": [first]}, h
 
 
 if __name__ == "__main__":
