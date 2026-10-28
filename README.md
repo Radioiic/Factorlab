@@ -861,6 +861,11 @@ With the GitHub CLI:
 gh workflow run tests.yml --ref main
 ```
 
+**Code scanning.** GitHub code scanning (CodeQL, default setup) examines the Python code, the
+JavaScript code and the test workflow. It runs for each push to `main`, for each pull request
+to `main` from a branch of this repository, and each week. Its settings are on GitHub, not in a
+file of this repository. The Actions tab shows its runs as the workflow `CodeQL`.
+
 **The code checks on your computer.** The settings are in `pyproject.toml`. The style is
 PEP 8 with the ruff rules E, F, W, I, B, UP and SIM, and a line length of 120:
 

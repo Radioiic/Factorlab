@@ -73,6 +73,11 @@ jobs:
 `.github/dependabot.yml` lets Dependabot check the pinned packages and the actions each
 month. It opens no pull requests.
 
+GitHub code scanning (CodeQL, default setup) examines the Python code, the JavaScript code
+and the test workflow. It runs for each push to `main`, for each pull request to `main` from a
+branch of this repository, and each week. Its settings are on GitHub, not in a file of this
+repository.
+
 [README.md](README.md#tests) gives the commands of the code checks on your computer.
 
 ## Maintenance
