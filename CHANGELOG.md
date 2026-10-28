@@ -7,17 +7,23 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-10-28
+
 ### Changed
 
 - `./setup.sh` accepts only Python 3.12 and 3.13, the versions that the tests use. For a newer Python, some pinned packages can have no wheel on PyPI, and pip must then build them from source.
+- When `engine/.venv` has a Python other than 3.12 or 3.13 (for example 3.14), `./setup.sh` stops. Install Python 3.12 or 3.13 if necessary, remove `engine/.venv`, then run `./setup.sh` again. `engine/.venv` holds no data.
 
 ### Fixed
 
-- `./setup.sh` stops with a clear message when `engine/.venv` has no pip. This occurs on Debian and Ubuntu (also in WSL2) when the package `python3.X-venv` is not installed. The message gives the name of the package.
+- When `engine/.venv` has no pip, `./setup.sh` stops with a message. On Debian and Ubuntu (also in WSL2), this occurs when the package `python3.X-venv` is not installed. The message gives the name of the package.
 - The Binance downloads use the CA certificates of `certifi` in addition to the CA certificates of Python. They now work with a Python from python.org on macOS also before its "Install Certificates.command" runs.
-- When a Binance download from the REST API fails after all retries, the message gives the reason of the last error.
-- The command in `web/README.md` that serves the dashboard accepts connections from this computer only (`-b 127.0.0.1`).
+- When a Binance download from the REST API fails after all retries, the message gives the cause of the last error.
 - On the System page, a link such as `#/system/__proto__` opens no glossary section and does not cause a script error.
+
+### Security
+
+- The command in `web/README.md` that serves the dashboard accepts connections from this computer only (`-b 127.0.0.1`).
 
 ## [0.2.2] - 2026-10-24
 
@@ -69,6 +75,7 @@ The dates are UTC dates. The GitHub release of each version has the text of its 
   - The private reporting form of GitHub (the tab Security and quality, then "Report a vulnerability") takes the security reports and the code of conduct reports.
   - The issues take the questions, also the questions about the license (the form "Question").
 
-[Unreleased]: https://github.com/Radioiic/Factorlab/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/Radioiic/Factorlab/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/Radioiic/Factorlab/releases/tag/v0.2.3
 [0.2.2]: https://github.com/Radioiic/Factorlab/releases/tag/v0.2.2
 [0.2.1]: https://github.com/Radioiic/Factorlab/releases/tag/v0.2.1

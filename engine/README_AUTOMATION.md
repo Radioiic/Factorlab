@@ -72,7 +72,7 @@ The demo plan has no step "factor tests, weekly log": the demo build registers n
 - It takes the lock `engine/logs/update.lock`. A second run at the same time stops with
   "another update is running".
 - It writes to `engine/logs/update.log`. Each line has the form `<UTC time>  <text>`. The
-  first line of a run gives the version (`Factorlab 0.2.2`); the console shows it too.
+  first line of a run gives the version (`Factorlab 0.2.3`); the console shows it too.
   Each step adds the line `<UTC time>  <step>  <result>  <seconds>s`. The result is `ok`,
   `done (new alarm)` or `failed (exit N)`. With `--verbose`, each output line follows its
   step line as `<UTC time>  <step> | <line>`. The System page of the dashboard shows the

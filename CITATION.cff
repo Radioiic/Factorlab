@@ -9,8 +9,8 @@ abstract: >-
 authors:
   - alias: Radioiic
 license: MIT
-version: 0.2.2
-date-released: 2026-10-24
+version: 0.2.3
+date-released: 2026-10-28
 repository-code: "https://github.com/Radioiic/Factorlab"
 keywords:
   - factor research

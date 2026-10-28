@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "factorlab"
-version = "0.2.2"
+version = "0.2.3"
 description = "Formula definitions of cross-sectional crypto factors, with an evaluator, a SQLite catalog and a command-line tool"
 readme = "README.md"
 license = "MIT"
