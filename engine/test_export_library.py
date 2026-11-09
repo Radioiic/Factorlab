@@ -809,16 +809,20 @@ def test_engine_groups_funnel_and_coverage_recomputed():
     }
     assert n == want, diff_dicts("engine counts (payload against status.parquet)", n, want)
     # the empty factors without open interest are the skew and kurtosis of vwap_dev
-    # (vwap equals close on OKX's data, so vwap_dev is constant)
-    vwap_dev_moments = {f"ts_{k}(vwap_dev, {w})" for k in ("skew", "kurt") for w in (180, 240, 360)}
-    assert set(fac.loc[(empty & ~oi).to_numpy(), "expression"]) <= vwap_dev_moments, (
+    # (vwap equals close on OKX's data, so vwap_dev is zero up to rounding). Which windows come out
+    # empty depends on that rounding noise, which differs in the last bit between CPUs (numpy's
+    # SIMD exp and log in demo_data.py): on one runner only 180, 240 and 360, on another 120 too.
+    # So any window counts.
+    vwap_dev_moment = re.compile(r"ts_(?:skew|kurt)\(vwap_dev, \d+\)")
+    empty_other = fac.loc[(empty & ~oi).to_numpy(), "expression"]
+    assert all(vwap_dev_moment.fullmatch(x) for x in empty_other), (
         "empty definitions without open interest that are not a skew or kurtosis of vwap_dev "
         + shown(
             f"{i} {x}"
             for i, x in zip(
                 fac.loc[(empty & ~oi).to_numpy(), "factor_id"], fac.loc[(empty & ~oi).to_numpy(), "expression"]
             )
-            if x not in vwap_dev_moments
+            if not vwap_dev_moment.fullmatch(x)
         )
         + f" (empty without open interest: {int((empty & ~oi).sum()):,}; compute: "
         + f"{dict(st.loc[(empty & ~oi).to_numpy(), 'compute'].value_counts())})"
